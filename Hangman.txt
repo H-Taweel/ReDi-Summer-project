@@ -1,0 +1,150 @@
+import random
+from string import ascii_uppercase
+import Gallow
+
+
+def welcoming():
+    print("This is HANGMAN GAME!")
+    player_name = input("Please enter your name to play this game:\n").capitalize()
+    print(f"Welcome to HANGMAN GAME {player_name}! You have 8 attempts to guess the full word!")
+    print("There are multiple difficulty settings shown below, please choose one:")
+    print("For Easy type E")
+    print("For Medium type M")
+    print("For Hard type H")
+    return player_name
+
+
+def difficulties(player_name):
+    diff = input(f"{player_name}, which difficulty you'd like to play?:\n").upper()
+    diffs = ["E", "M", "H"]
+    while diff not in diffs:
+        print("You did NOT choose any difficulty, please choose one:")
+        diff = input().upper()
+    if diff == 'E':
+        print(f"Well {player_name}, you've chosen Easy difficulty.")
+        f = open("C:/Users/hisha/Desktop/ReDi/Hangman/WordList_easy.txt", "r")
+        easy_file = f.read().split()
+        word = random.choice(easy_file)
+    elif diff == 'M':
+        print(f"Well {player_name}, you've chosen Medium difficulty.")
+        f = open("C:/Users/hisha/Desktop/ReDi/Hangman/WordList_medium.txt", "r")
+        medium_file = f.read().split()
+        word = random.choice(medium_file)
+    elif diff == 'H':
+        print(f"Well {player_name}, you've chosen Hard difficulty.")
+        f = open("C:/Users/hisha/Desktop/ReDi/Hangman/WordList_hard.txt")
+        hard_file = f.read().split()
+        word = random.choice(hard_file)
+    return word
+
+
+def gallow_board(incorrect_letters, secret_word, correct_letters):
+    print(Gallow.gallow[len(incorrect_letters)])
+    for letter in secret_word:
+        if letter in correct_letters:
+            print("\033[1;34m", letter, end=' ' + "\033[0m")  # correct
+        else:
+            print('_', end=' ')  # length of the secret word
+    print('\n')
+    print("\033[3;91m*****INCORRECT LETTERS*****\033[0m")
+    for letter in incorrect_letters:
+        print("\033[1;91m", letter, end=' ' + "\033[0m")
+    print('\n~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+
+
+def player_guess(incorrect_letters, secret_word, correct_letters): # Handling_errors:
+    while True:
+        guess = input("Guess a letter:\n").upper()  # Asking the player for input
+        if guess in correct_letters or guess in incorrect_letters:  # If player already guessed the letter
+            print("You have already guessed this letter")
+        elif len(guess) > 1:  # If player inputs more than a letter
+            print("Please enter only ONE letter at time")
+        elif len(guess) == 0:  # If player inputs nothing or pressed Enter
+            print("You entered NOTHING!! Please enter a letter")
+        elif guess not in ascii_uppercase:  # If user inputs anything else but letters
+            print("NOT VALID!! please enter ONLY letter") # We can use .isalpha to accept german letters
+        else:
+            break
+    if guess in secret_word:  # Check player's guess
+        correct_letters.append(guess)
+    else:
+        incorrect_letters.append(guess)
+
+
+def check_win(incorrect_letters, secret_word, correct_letters): # If user won or lost:
+    if len(incorrect_letters) == 8:  # attempts = 8
+        return 'loss'
+    for i in secret_word:
+        if i not in correct_letters:
+            return 'no win'
+    return 'win'
+
+
+def play_game(player_name):
+    secret_word = difficulties(player_name).upper()
+    correct_letters = []
+    incorrect_letters = []
+    print(secret_word)
+    print('The word contains', len(secret_word), 'letters')
+    play_turn = True
+    turn_count = 0
+    while play_turn: # Looping the entire game till the user wins or looses
+        gallow_board(incorrect_letters, secret_word, correct_letters)
+        player_guess(incorrect_letters, secret_word, correct_letters)
+        attempts = len(incorrect_letters)
+        score = 1000
+        points = score - (attempts * 125)
+        result = {"Name":player_name, "Points": points}
+        win_condition = check_win(incorrect_letters, secret_word, correct_letters)
+        if win_condition == 'loss':
+            print(Gallow.gallow[-2])
+            print(f"GAME OVER {player_name}! The word was {secret_word}")
+            return None
+        elif win_condition == 'win':
+            print(Gallow.gallow[-1])
+            print(f"Great {player_name}, YOU WON! The word was {secret_word}\nYour score is: {str(points)}")
+            turn_count += 1
+            return result
+
+
+def end_game():
+    score_board = {}
+    while True:
+        results = play_game(player_name)
+        if isinstance(results, dict):
+            sb_name = results["Name"]
+            sb_points = results["Points"]
+            score_board[sb_name] = sb_points
+
+        answer = input('Do you want to restart the game? \nPlease input Yes(y) or No(n):\n').lower()
+        yes_or_no = ['y', 'yes', 'no', 'n']
+        while answer not in yes_or_no:
+            print('Please input yes(y) or no(n)')
+            answer = input('y/n: ').lower()
+            print(answer)
+
+        if answer == 'no' or answer == 'n':
+            print(f"Scoreboard: {score_board}")
+            print(f"Thank you for your time!")
+            break
+        elif answer == 'yes' or answer == 'y':
+            print(f'Great! Game Restarted')
+
+
+# the whole game:
+player_name = welcoming()
+end_game()
+
+'''play = play_game(player_name)
+    score_board = {}
+    while True:
+        answers = ["no", "n", "yes", "y"]  # Ask user to play again or exit the loop
+        play_again = input("... Would you like to play again? type y or n:\n").upper()
+        while play_again not in answers:
+            print('\033[91mPlease type "yes" or "y" to play again  OR\nIf you want to end this game please type "no" or "n"\033[0m')
+            play_again = input().lower()
+
+        if play_again == "yes" or play_again == "y":
+            play = True
+        elif play_again == "no" or play_again == "n":
+            play = False'''
